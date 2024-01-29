@@ -1,40 +1,55 @@
 import { Meteor } from 'meteor/meteor';
-import { LinksCollection } from '/imports/api/links';
-import { Roles } from 'meteor/alanning:roles'
-
-async function insertLink({ title, url }) {
-  await LinksCollection.insertAsync({ title, url, createdAt: new Date() });
-}
-
-Meteor.startup(async () => {
-  // If the Links collection is empty, add some data.
-  Roles.createRole('admin');
+import { Roles } from 'meteor/alanning:roles';
+import { Loans } from '../imports/api/loans';
+Meteor.startup(() => {
+   
   Roles.createRole('borrower');
   Roles.createRole('lender');
-  // if (await LinksCollection.find().countAsync() === 0) {
+  Meteor.methods({
+    'loans.request'() {
+      if (!this.userId) {
+        throw new Meteor.Error('not-authorized');
+      }
 
-    // await insertLink({
-    //   title: 'Do the Tutorial',
-    //   url: 'https://react-tutorial.meteor.com/simple-todos/01-creating-app.html',
-    // });
-
-    // await insertLink({
-    //   title: 'Follow the Guide',
-    //   url: 'https://guide.meteor.com',
-    // });
-
-    // await insertLink({
-    //   title: 'Read the Docs',
-    //   url: 'https://docs.meteor.com',
-    // });
-
-    // await insertLink({
-    //   title: 'Discussions',
-    //   url: 'https://forums.meteor.com',
-    // });
+      Loans.insert({
+        borrowerId: this.userId,
+        status: 'requested',
+      });
+    },
   });
+});
+Meteor.methods({
+  checkAdminRole() {
+      if (!Roles.userIsInRole(Meteor.userId(), 'admin')) {
+        Roles.createRole('admin');
+      }
+    },
+});
+Meteor.methods({
+  checkLenderRole() {
+      if (!Roles.userIsInRole(Meteor.userId(), 'admin')) {
+        Roles.createRole('lender');
+      }
+    },
+});
+Meteor.methods({
+  checkBorrowerRole() {
+      if (!Roles.userIsInRole(Meteor.userId(), 'borrower')) {
+        Roles.createRole('borrower');
+      }
+    },
+});
 
-  // We publish the entire Links collection to all clients.
-  // In order to be fetched in real-time to the clients
-  // Meteor.publish("links", function () {
-  //   return LinksCollection.find();
+Meteor.methods({
+  'loans.confirmPayment'() {
+    if (!this.userId || !Roles.userIsInRole(this.userId, 'lender')) {
+      throw new Meteor.Error('not-authorized');
+    }
+
+    const loan = Loans.findOne({ lenderId: this.userId, status: 'requested' });
+    if (loan) {
+      Loans.update(loan._id, { $set: { status: 'paid' } });
+    }
+  },
+});
+

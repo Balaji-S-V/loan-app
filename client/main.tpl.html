@@ -1,0 +1,74 @@
+<template name="loan-app">
+  <head>
+    <title>Loan Management App</title>
+  </head>
+  <body>
+    {{> loginButtons}}
+    {{> dashboard}}
+    {{> roleSelection}}
+    {{> adminView}}
+  </body>
+</template>
+<template name="loginButtons">
+  <head></head>
+  <body>
+      {{#if currentUser}}
+        <button id="logout">Logout</button>
+      {{else}}
+        <button id="login">Login</button>
+        <button id="signup">Sign Up</button>
+      {{/if}}
+  </body>
+</template>
+
+
+<template name="adminView">
+      <head><h2>Admin View</h2></head>
+      <body><ul>
+          {{#each allLoans}}
+            <li>{{status}}</li>
+          {{/each}}
+        </ul></body>
+</template>
+
+<template name="dashboard">
+  <head></head>
+  <body>
+    {{#if currentUser}}
+      <h2>Welcome, {{currentUser.profile.name}}</h2>
+
+      {{#if currentUser.roles.lender}}
+        <button id="confirmPayment">Confirm Payment</button>
+        <ul>
+          {{#each loans}}
+            <li>{{status}}</li>
+          {{/each}}
+        </ul>
+      {{/if}}
+
+      {{#if currentUser.roles.borrower}}
+        <button id="requestLoan">Request Loan</button>
+        <ul>
+          {{#each loans}}
+            <li>{{status}}</li>
+          {{/each}}
+        </ul>
+      {{/if}}
+
+    {{else}}
+      {{> loginButtons}}
+    {{/if}}
+  </body>
+</template>
+
+
+<template name="roleSelection">
+      <head>
+          <h2>Select Your Role</h2>
+      </head>
+      <body>
+              <button id="selectBorrower">Borrower</button>
+              <button id="selectLender">Lender</button>
+      </body>  
+</template>        
+  
