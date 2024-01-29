@@ -27,7 +27,7 @@ Meteor.methods({
 });
 Meteor.methods({
   checkLenderRole() {
-      if (!Roles.userIsInRole(Meteor.userId(), 'admin')) {
+      if (!Roles.userIsInRole(Meteor.userId(), 'lender')) {
         Roles.createRole('lender');
       }
     },
